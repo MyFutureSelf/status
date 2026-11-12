@@ -3,7 +3,7 @@
   "services": [
     {
       "id": "website",
-      "name": "Website",
+      "name": "myfutureselfapp.com",
       "group": "Website",
       "url": "https://myfutureselfapp.com/",
       "expect": "MyFutureSelf"
