@@ -72,11 +72,75 @@ export async function checkWithRetries(
 }
 
 /**
+ * The hosts behind a service whose pages come from a secret (`hostsFrom`), so
+ * the public repository, status.json and run logs never name them. Accepts
+ * hostnames or https URLs separated by commas or whitespace. Sorted, so a log
+ * line's "site 3" is the third host in alphabetical order.
+ *
+ * @param {string | undefined} text
+ */
+export function parseHosts(text) {
+  const hosts = new Set();
+  for (const raw of (text ?? "").split(/[\s,]+/)) {
+    if (!raw) continue;
+    const host = (raw.includes("://") ? new URL(raw).hostname : raw).toLowerCase().replace(/\.$/, "");
+    if (!/^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(host)) throw new Error(`Not a hostname (entry ${hosts.size + 1})`);
+    hosts.add(host);
+  }
+  return [...hosts].sort();
+}
+
+/**
+ * The pages one service checks. A plain service has its own `url`; a
+ * `hostsFrom` service checks `https://<host>/` for every host in that
+ * environment variable and refuses to run without them.
+ */
+export function targetsFor(service, env = process.env) {
+  if (!service.hostsFrom) return [{ url: service.url, expect: service.expect }];
+  const hosts = parseHosts(env[service.hostsFrom]);
+  if (!hosts.length) throw new Error(`${service.id}: ${service.hostsFrom} is empty or not set`);
+  return hosts.map((host) => ({ url: `https://${host}/`, expect: service.expect, host }));
+}
+
+/** Replaces every host in `text` with "a campus site", so an error string cannot leak one. */
+export function redactHosts(text, hosts) {
+  if (!text) return text;
+  let out = text;
+  for (const host of [...hosts].sort((a, b) => b.length - a.length)) out = out.split(host).join("a campus site");
+  return out;
+}
+
+/**
+ * One result for a service checked on several pages: up only when every page
+ * is up. A failure reports how many sites failed and the first failure's
+ * error, never which site.
+ *
+ * @param {Array<{ok: boolean, httpStatus: number | null, latencyMs: number, error: string | null, attempts: number}>} parts
+ * @param {string[]} hosts redacted from the error
+ */
+export function combineResults(parts, hosts = []) {
+  if (parts.length === 1 && !hosts.length) return parts[0];
+  const failed = parts.filter((p) => !p.ok);
+  const latencyMs = Math.max(...parts.map((p) => p.latencyMs));
+  const attempts = Math.max(...parts.map((p) => p.attempts));
+  if (!failed.length) return { ok: true, httpStatus: parts[0].httpStatus, latencyMs, error: null, attempts };
+  const first = failed[0];
+  const sites = failed.length === 1 ? "1 campus site" : `${failed.length} campus sites`;
+  return {
+    ok: false,
+    httpStatus: first.httpStatus,
+    latencyMs,
+    error: `${sites} failed: ${redactHosts(first.error, hosts) ?? "failed"}`,
+    attempts,
+  };
+}
+
+/**
  * Folds one run into the previous state. Pure: returns the next state and the
  * incidents this run resolved (the caller comments on and closes their issues).
  *
  * @param {object | null} previous the last published status.json, or null
- * @param {Array<{id: string, name: string, group: string, url: string}>} services
+ * @param {Array<{id: string, name: string, group: string, url?: string}>} services
  * @param {Map<string, {ok: boolean}>} results this run's result per service id
  * @param {string} now ISO time of the run
  */
@@ -124,7 +188,7 @@ export function applyRun(previous, services, results, now) {
       id: service.id,
       name: service.name,
       group: service.group,
-      url: service.url,
+      ...(service.url ? { url: service.url } : {}),
       status: openIncident ? "down" : "up",
       lastCheck: { at: now, ...result },
       consecutiveFailures,

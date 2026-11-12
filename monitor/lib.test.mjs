@@ -7,8 +7,12 @@ import {
   applyRun,
   checkOnce,
   checkWithRetries,
+  combineResults,
   formatDuration,
+  parseHosts,
   recordIssue,
+  redactHosts,
+  targetsFor,
 } from "./lib.mjs";
 
 const svc = { id: "web", name: "Website", group: "Website", url: "https://example.test/", expect: "MyFutureSelf" };
@@ -123,14 +127,63 @@ test("durations read in hours and minutes", () => {
   assert.equal(formatDuration((3 * 60 + 12) * 60_000), "3h 12m");
 });
 
-test("every configured service is a public https page with a stable id", () => {
+test("every configured service is a public https page or a secret host list, with a stable id", () => {
   const { services } = JSON.parse(readFileSync(new URL("./services.json", import.meta.url), "utf8"));
   const ids = services.map((s) => s.id);
   assert.equal(new Set(ids).size, ids.length);
   for (const s of services) {
     assert.match(s.id, /^[a-z0-9-]+$/);
-    assert.equal(new URL(s.url).protocol, "https:");
     assert.ok(s.name && s.group && s.expect, s.id);
-    assert.doesNotMatch(s.url, /\/api\//, "no API routes: they can cost money per call");
+    if (s.hostsFrom) {
+      assert.equal(s.url, undefined, `${s.id}: a host-list service publishes no url`);
+      assert.match(s.hostsFrom, /^[A-Z][A-Z0-9_]*$/);
+    } else {
+      assert.equal(new URL(s.url).protocol, "https:");
+      assert.doesNotMatch(s.url, /\/api\//, "no API routes: they can cost money per call");
+    }
   }
+  assert.deepEqual(
+    services.map((s) => s.name),
+    ["myfutureselfapp.com", "Campus product"],
+  );
+});
+
+test("campus hosts come from the environment, sorted, and a missing list stops the run", () => {
+  const campus = { id: "campus", name: "Campus product", group: "Campus", hostsFrom: "CAMPUS_HOSTS", expect: "MyFutureSelf" };
+  assert.deepEqual(parseHosts(" b.example.test,\nhttps://A.example.test/ b.example.test "), ["a.example.test", "b.example.test"]);
+  assert.throws(() => parseHosts("not a host"), /Not a hostname/);
+  assert.deepEqual(
+    targetsFor(campus, { CAMPUS_HOSTS: "b.example.test a.example.test" }),
+    [
+      { url: "https://a.example.test/", expect: "MyFutureSelf", host: "a.example.test" },
+      { url: "https://b.example.test/", expect: "MyFutureSelf", host: "b.example.test" },
+    ],
+  );
+  assert.throws(() => targetsFor(campus, {}), /CAMPUS_HOSTS is empty or not set/);
+  assert.deepEqual(targetsFor(svc, {}), [{ url: svc.url, expect: svc.expect }]);
+});
+
+test("the campus product is up only when every site is up, and its error never names a site", () => {
+  const hosts = ["a.example.test", "b.example.test"];
+  assert.deepEqual(combineResults([up, { ...up, latencyMs: 300, attempts: 2 }], hosts), {
+    ok: true,
+    httpStatus: 200,
+    latencyMs: 300,
+    error: null,
+    attempts: 2,
+  });
+  const leak = { ...downResult, httpStatus: null, error: "getaddrinfo ENOTFOUND b.example.test" };
+  const one = combineResults([up, leak], hosts);
+  assert.equal(one.ok, false);
+  assert.equal(one.error, "1 campus site failed: getaddrinfo ENOTFOUND a campus site");
+  assert.equal(combineResults([downResult, downResult], hosts).error, "2 campus sites failed: HTTP 503");
+  assert.equal(redactHosts("x a.example.test y", hosts), "x a campus site y");
+  assert.equal(combineResults([downResult]), downResult, "a single-page service passes its result through");
+
+  // Folded into the state like any service: one check per run, and the row carries no url.
+  const campus = { id: "campus", name: "Campus product", group: "Campus", hostsFrom: "CAMPUS_HOSTS" };
+  const { state } = applyRun(null, [campus], new Map([["campus", one]]), "2026-11-12T10:00:00.000Z");
+  assert.equal("url" in state.services[0], false);
+  assert.deepEqual(state.services[0].days, [{ date: "2026-11-12", checks: 1, ok: 0 }]);
+  assert.doesNotMatch(JSON.stringify(state), /example\.test/);
 });
