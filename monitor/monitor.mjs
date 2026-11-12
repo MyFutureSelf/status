@@ -7,7 +7,15 @@
 // (default: the workflow's GITHUB_TOKEN). Without a token the run still writes
 // the state and only logs what it would have filed.
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import { applyRun, checkWithRetries, formatDuration, recordIssue } from "./lib.mjs";
+import {
+  applyRun,
+  checkWithRetries,
+  combineResults,
+  formatDuration,
+  recordIssue,
+  redactHosts,
+  targetsFor,
+} from "./lib.mjs";
 
 const [previousPath, outputPath] = process.argv.slice(2);
 if (!previousPath || !outputPath) {
@@ -27,18 +35,46 @@ if (previousPath !== "none" && existsSync(previousPath)) {
   }
 }
 
+// A service with `hostsFrom` (the campus product) checks every host in that
+// secret. The hosts are never printed: this repository and its run logs are
+// public. Each one is also registered as a mask, so the runner redacts it if
+// anything ever does print it.
+const targets = new Map(services.map((s) => [s.id, targetsFor(s)]));
+const hiddenHosts = [...targets.values()].flat().flatMap((t) => (t.host ? [t.host] : []));
+if (process.env.GITHUB_ACTIONS) for (const host of hiddenHosts) console.log(`::add-mask::${host}`);
+
 const now = new Date().toISOString();
 const results = new Map(
-  await Promise.all(services.map(async (s) => [s.id, await checkWithRetries(s)])),
+  await Promise.all(
+    services.map(async (s) => {
+      const parts = await Promise.all(targets.get(s.id).map((t) => checkWithRetries({ ...s, ...t })));
+      return [s.id, { parts, combined: combineResults(parts, s.hostsFrom ? hiddenHosts : []) }];
+    }),
+  ),
 );
 for (const s of services) {
-  const r = results.get(s.id);
+  const { parts, combined: r } = results.get(s.id);
+  const sites = s.hostsFrom ? ` ${parts.filter((p) => p.ok).length}/${parts.length} sites up` : "";
   console.log(
-    `${r.ok ? "up  " : "DOWN"} ${s.id} ${r.httpStatus ?? "-"} ${r.latencyMs}ms attempts=${r.attempts}${r.error ? ` ${r.error}` : ""}`,
+    `${r.ok ? "up  " : "DOWN"} ${s.id}${sites} ${r.httpStatus ?? "-"} ${r.latencyMs}ms attempts=${r.attempts}${r.error ? ` ${r.error}` : ""}`,
   );
+  // Failed sites by position in the sorted host list, so the log can be traced
+  // privately against the secret without naming a school here.
+  if (s.hostsFrom)
+    parts.forEach((p, index) => {
+      if (!p.ok)
+        console.log(
+          `     site ${index + 1}: ${p.httpStatus ?? "-"} ${p.latencyMs}ms attempts=${p.attempts} ${redactHosts(p.error, hiddenHosts)}`,
+        );
+    });
 }
 
-const { state, resolved } = applyRun(previous, services, results, now);
+const { state, resolved } = applyRun(
+  previous,
+  services,
+  new Map([...results].map(([id, r]) => [id, r.combined])),
+  now,
+);
 
 // Outage issues. A failure here never loses the state: the open incident keeps
 // `issue: null` and the next run tries again.
@@ -87,7 +123,7 @@ if (!token || !repo) {
       for (const service of down) {
         const last = service.lastCheck;
         const lines = [
-          `${service.url} failed ${service.consecutiveFailures} checks in a row, starting ${service.openIncident.startedAt}.`,
+          `${service.name} failed ${service.consecutiveFailures} checks in a row, starting ${service.openIncident.startedAt}.`,
           "",
           `Last check at ${last.at}: ${last.error ?? "failed"}, after ${last.attempts} attempts.`,
           ...(runUrl ? ["", `Run: ${runUrl}`] : []),
@@ -112,7 +148,7 @@ if (!token || !repo) {
         if (!number) continue;
         const lasted = formatDuration(Date.parse(now) - Date.parse(event.startedAt));
         await gh("POST", `/issues/${number}/comments`, {
-          body: `Recovered at ${now}: ${service.url} answered with HTTP ${service.lastCheck.httpStatus}. Down for ${lasted}.${runUrl ? `\n\nRun: ${runUrl}` : ""}`,
+          body: `Recovered at ${now}: ${service.name} is up again. Down for ${lasted}.${runUrl ? `\n\nRun: ${runUrl}` : ""}`,
         });
         await gh("PATCH", `/issues/${number}`, { state: "closed", state_reason: "completed" });
         console.log(`Closed outage issue #${number} for ${service.id}`);

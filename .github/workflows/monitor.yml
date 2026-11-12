@@ -47,6 +47,10 @@ jobs:
       - name: Check services
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          # The campus product's hosts, one per line. A secret so neither this
+          # public repository nor its run logs name a school; the run fails
+          # without it rather than publish a campus row it did not check.
+          CAMPUS_HOSTS: ${{ secrets.CAMPUS_HOSTS }}
           # Optional: file outage issues in another repository with a token
           # that can write its issues.
           ISSUES_REPO: ${{ vars.OUTAGE_ISSUES_REPO }}
