@@ -15,7 +15,9 @@ if (!previousPath || !outputPath) {
   process.exit(2);
 }
 
-const { services } = JSON.parse(readFileSync(new URL("./services.json", import.meta.url), "utf8"));
+// SERVICES_FILE swaps the list, for an end-to-end test of the issue flow.
+const servicesFile = process.env.SERVICES_FILE || new URL("./services.json", import.meta.url);
+const { services } = JSON.parse(readFileSync(servicesFile, "utf8"));
 let previous = null;
 if (previousPath !== "none" && existsSync(previousPath)) {
   try {
@@ -87,8 +89,8 @@ if (!token || !repo) {
         const lines = [
           `${service.url} failed ${service.consecutiveFailures} checks in a row, starting ${service.openIncident.startedAt}.`,
           "",
-          `Last check: ${last.error ?? "failed"} (HTTP ${last.httpStatus ?? "none"}, ${last.attempts} attempts, ${last.latencyMs}ms) at ${last.at}.`,
-          runUrl ? `Run: ${runUrl}` : "",
+          `Last check at ${last.at}: ${last.error ?? "failed"}, after ${last.attempts} attempts.`,
+          ...(runUrl ? ["", `Run: ${runUrl}`] : []),
           "",
           "The monitor comments and closes this issue when the service answers again.",
         ];
@@ -110,7 +112,7 @@ if (!token || !repo) {
         if (!number) continue;
         const lasted = formatDuration(Date.parse(now) - Date.parse(event.startedAt));
         await gh("POST", `/issues/${number}/comments`, {
-          body: `Recovered at ${now}: ${service.url} answered with HTTP ${service.lastCheck.httpStatus}. Down for about ${lasted}.${runUrl ? `\n\nRun: ${runUrl}` : ""}`,
+          body: `Recovered at ${now}: ${service.url} answered with HTTP ${service.lastCheck.httpStatus}. Down for ${lasted}.${runUrl ? `\n\nRun: ${runUrl}` : ""}`,
         });
         await gh("PATCH", `/issues/${number}`, { state: "closed", state_reason: "completed" });
         console.log(`Closed outage issue #${number} for ${service.id}`);
