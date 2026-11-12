@@ -1,0 +1,54 @@
+{
+  "$comment": "Public pages only: read-only GETs, no auth, nothing billed per call. `expect` is text the healthy page always contains, so a parked domain or an error page served with 200 still counts as down.",
+  "services": [
+    {
+      "id": "website",
+      "name": "Website",
+      "group": "Website",
+      "url": "https://myfutureselfapp.com/",
+      "expect": "MyFutureSelf"
+    },
+    {
+      "id": "campus-front-door",
+      "name": "edu.myfutureselfapp.com",
+      "group": "Campus app",
+      "url": "https://edu.myfutureselfapp.com/",
+      "expect": "MyFutureSelf"
+    },
+    {
+      "id": "campus-miamioh",
+      "name": "miamioh.myfutureselfapp.com",
+      "group": "Campus app",
+      "url": "https://miamioh.myfutureselfapp.com/",
+      "expect": "MyFutureSelf"
+    },
+    {
+      "id": "campus-gwu",
+      "name": "gwu.myfutureselfapp.com",
+      "group": "Campus app",
+      "url": "https://gwu.myfutureselfapp.com/",
+      "expect": "MyFutureSelf"
+    },
+    {
+      "id": "campus-virginia",
+      "name": "virginia.myfutureselfapp.com",
+      "group": "Campus app",
+      "url": "https://virginia.myfutureselfapp.com/",
+      "expect": "MyFutureSelf"
+    },
+    {
+      "id": "campus-akron",
+      "name": "akron.myfutureselfapp.com",
+      "group": "Campus app",
+      "url": "https://akron.myfutureselfapp.com/",
+      "expect": "MyFutureSelf"
+    },
+    {
+      "id": "campus-chaminade",
+      "name": "chaminade.myfutureselfapp.com",
+      "group": "Campus app",
+      "url": "https://chaminade.myfutureselfapp.com/",
+      "expect": "MyFutureSelf"
+    }
+  ]
+}

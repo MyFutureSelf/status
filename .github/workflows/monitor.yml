@@ -1,0 +1,74 @@
+name: Monitor
+
+# Checks every service in monitor/services.json about every 5 minutes (GitHub
+# runs schedules on a best-effort basis, so gaps of 10 to 15 minutes happen)
+# and force-pushes the result as the only commit on the status-data branch:
+# https://raw.githubusercontent.com/MyFutureSelf/status/status-data/status.json
+# The website's /status page reads that file. main never gets a commit from a
+# run. Two failed runs in a row open an `outage` issue; the first good run
+# comments on it and closes it.
+#
+# This repository is public so the schedule runs on GitHub-hosted runners at no
+# cost; the same schedule in a private repository bills about 8,600 runner
+# minutes a month.
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: monitor
+  cancel-in-progress: false
+
+permissions:
+  contents: write # push status-data
+  issues: write # open and close outage issues
+  actions: write # keep the schedule enabled (see the last step)
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - name: Read the last published state
+        run: |
+          if git fetch --quiet --depth=1 origin status-data; then
+            git show FETCH_HEAD:status.json > "$RUNNER_TEMP/previous.json"
+          else
+            echo "No status-data branch yet; starting fresh."
+            echo null > "$RUNNER_TEMP/previous.json"
+          fi
+
+      - name: Check services
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          # Optional: file outage issues in another repository with a token
+          # that can write its issues.
+          ISSUES_REPO: ${{ vars.OUTAGE_ISSUES_REPO }}
+          ISSUES_TOKEN: ${{ secrets.OUTAGE_ISSUES_TOKEN }}
+        run: node monitor/monitor.mjs "$RUNNER_TEMP/previous.json" "$RUNNER_TEMP/status.json"
+
+      # One commit with no parent each time, so the branch never grows history.
+      - name: Publish status.json to status-data
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          blob="$(git hash-object -w "$RUNNER_TEMP/status.json")"
+          tree="$(printf '100644 blob %s\tstatus.json\n' "$blob" | git mktree)"
+          commit="$(git commit-tree "$tree" -m "Status at $(date -u +%Y-%m-%dT%H:%M:%SZ)")"
+          git push --force --quiet origin "$commit:refs/heads/status-data"
+
+      # GitHub turns off schedules in a public repository after 60 days without
+      # activity. Enabling the workflow again resets that clock without a commit.
+      - name: Keep the schedule enabled
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method PUT "repos/$GITHUB_REPOSITORY/actions/workflows/monitor.yml/enable" || true

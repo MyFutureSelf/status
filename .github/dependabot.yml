@@ -1,0 +1,12 @@
+# Actions are pinned to full commit SHAs; this bumps each SHA and its version
+# comment together, once a week.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns:
+          - "*"
