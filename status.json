@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "updatedAt": "2026-11-14T18:57:06.022Z",
+  "intervalMinutes": 5,
+  "services": [
+    {
+      "id": "website",
+      "name": "myfutureselfapp.com",
+      "group": "Website",
+      "url": "https://myfutureselfapp.com/",
+      "status": "up",
+      "lastCheck": {
+        "at": "2026-11-14T18:57:06.022Z",
+        "ok": true,
+        "httpStatus": 200,
+        "latencyMs": 203,
+        "error": null,
+        "attempts": 1
+      },
+      "consecutiveFailures": 0,
+      "failingSince": null,
+      "openIncident": null,
+      "days": [
+        {
+          "date": "2026-11-12",
+          "checks": 48,
+          "ok": 48
+        },
+        {
+          "date": "2026-11-13",
+          "checks": 121,
+          "ok": 121
+        },
+        {
+          "date": "2026-11-14",
+          "checks": 99,
+          "ok": 99
+        }
+      ]
+    },
+    {
+      "id": "campus",
+      "name": "Campus product",
+      "group": "Campus",
+      "status": "up",
+      "lastCheck": {
+        "at": "2026-11-14T18:57:06.022Z",
+        "ok": true,
+        "httpStatus": 200,
+        "latencyMs": 347,
+        "error": null,
+        "attempts": 1
+      },
+      "consecutiveFailures": 0,
+      "failingSince": null,
+      "openIncident": null,
+      "days": [
+        {
+          "date": "2026-11-12",
+          "checks": 48,
+          "ok": 48
+        },
+        {
+          "date": "2026-11-13",
+          "checks": 121,
+          "ok": 121
+        },
+        {
+          "date": "2026-11-14",
+          "checks": 99,
+          "ok": 99
+        }
+      ]
+    }
+  ],
+  "incidents": []
+}
