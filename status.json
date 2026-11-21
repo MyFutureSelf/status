@@ -1,0 +1,147 @@
+{
+  "version": 1,
+  "updatedAt": "2026-11-21T13:01:43.980Z",
+  "intervalMinutes": 5,
+  "services": [
+    {
+      "id": "website",
+      "name": "myfutureselfapp.com",
+      "group": "Website",
+      "url": "https://myfutureselfapp.com/",
+      "status": "up",
+      "lastCheck": {
+        "at": "2026-11-21T13:01:43.980Z",
+        "ok": true,
+        "httpStatus": 200,
+        "latencyMs": 299,
+        "error": null,
+        "attempts": 1
+      },
+      "consecutiveFailures": 0,
+      "failingSince": null,
+      "openIncident": null,
+      "days": [
+        {
+          "date": "2026-11-12",
+          "checks": 48,
+          "ok": 48
+        },
+        {
+          "date": "2026-11-13",
+          "checks": 121,
+          "ok": 121
+        },
+        {
+          "date": "2026-11-14",
+          "checks": 127,
+          "ok": 127
+        },
+        {
+          "date": "2026-11-15",
+          "checks": 124,
+          "ok": 124
+        },
+        {
+          "date": "2026-11-16",
+          "checks": 95,
+          "ok": 95
+        },
+        {
+          "date": "2026-11-17",
+          "checks": 118,
+          "ok": 118
+        },
+        {
+          "date": "2026-11-18",
+          "checks": 120,
+          "ok": 120
+        },
+        {
+          "date": "2026-11-19",
+          "checks": 119,
+          "ok": 119
+        },
+        {
+          "date": "2026-11-20",
+          "checks": 121,
+          "ok": 121
+        },
+        {
+          "date": "2026-11-21",
+          "checks": 64,
+          "ok": 64
+        }
+      ]
+    },
+    {
+      "id": "campus",
+      "name": "Campus product",
+      "group": "Campus",
+      "status": "up",
+      "lastCheck": {
+        "at": "2026-11-21T13:01:43.980Z",
+        "ok": true,
+        "httpStatus": 200,
+        "latencyMs": 274,
+        "error": null,
+        "attempts": 1
+      },
+      "consecutiveFailures": 0,
+      "failingSince": null,
+      "openIncident": null,
+      "days": [
+        {
+          "date": "2026-11-12",
+          "checks": 48,
+          "ok": 48
+        },
+        {
+          "date": "2026-11-13",
+          "checks": 121,
+          "ok": 121
+        },
+        {
+          "date": "2026-11-14",
+          "checks": 127,
+          "ok": 127
+        },
+        {
+          "date": "2026-11-15",
+          "checks": 124,
+          "ok": 124
+        },
+        {
+          "date": "2026-11-16",
+          "checks": 95,
+          "ok": 95
+        },
+        {
+          "date": "2026-11-17",
+          "checks": 118,
+          "ok": 118
+        },
+        {
+          "date": "2026-11-18",
+          "checks": 120,
+          "ok": 120
+        },
+        {
+          "date": "2026-11-19",
+          "checks": 119,
+          "ok": 119
+        },
+        {
+          "date": "2026-11-20",
+          "checks": 121,
+          "ok": 121
+        },
+        {
+          "date": "2026-11-21",
+          "checks": 64,
+          "ok": 64
+        }
+      ]
+    }
+  ],
+  "incidents": []
+}
