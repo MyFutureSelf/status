@@ -1,0 +1,217 @@
+{
+  "version": 1,
+  "updatedAt": "2026-11-28T16:37:17.249Z",
+  "intervalMinutes": 5,
+  "services": [
+    {
+      "id": "website",
+      "name": "myfutureselfapp.com",
+      "group": "Website",
+      "url": "https://myfutureselfapp.com/",
+      "status": "up",
+      "lastCheck": {
+        "at": "2026-11-28T16:37:17.249Z",
+        "ok": true,
+        "httpStatus": 200,
+        "latencyMs": 420,
+        "error": null,
+        "attempts": 1
+      },
+      "consecutiveFailures": 0,
+      "failingSince": null,
+      "openIncident": null,
+      "days": [
+        {
+          "date": "2026-11-12",
+          "checks": 48,
+          "ok": 48
+        },
+        {
+          "date": "2026-11-13",
+          "checks": 121,
+          "ok": 121
+        },
+        {
+          "date": "2026-11-14",
+          "checks": 127,
+          "ok": 127
+        },
+        {
+          "date": "2026-11-15",
+          "checks": 124,
+          "ok": 124
+        },
+        {
+          "date": "2026-11-16",
+          "checks": 95,
+          "ok": 95
+        },
+        {
+          "date": "2026-11-17",
+          "checks": 118,
+          "ok": 118
+        },
+        {
+          "date": "2026-11-18",
+          "checks": 120,
+          "ok": 120
+        },
+        {
+          "date": "2026-11-19",
+          "checks": 119,
+          "ok": 119
+        },
+        {
+          "date": "2026-11-20",
+          "checks": 121,
+          "ok": 121
+        },
+        {
+          "date": "2026-11-21",
+          "checks": 125,
+          "ok": 125
+        },
+        {
+          "date": "2026-11-22",
+          "checks": 123,
+          "ok": 123
+        },
+        {
+          "date": "2026-11-23",
+          "checks": 114,
+          "ok": 114
+        },
+        {
+          "date": "2026-11-24",
+          "checks": 117,
+          "ok": 117
+        },
+        {
+          "date": "2026-11-25",
+          "checks": 118,
+          "ok": 118
+        },
+        {
+          "date": "2026-11-26",
+          "checks": 118,
+          "ok": 118
+        },
+        {
+          "date": "2026-11-27",
+          "checks": 118,
+          "ok": 118
+        },
+        {
+          "date": "2026-11-28",
+          "checks": 84,
+          "ok": 84
+        }
+      ]
+    },
+    {
+      "id": "campus",
+      "name": "Campus product",
+      "group": "Campus",
+      "status": "up",
+      "lastCheck": {
+        "at": "2026-11-28T16:37:17.249Z",
+        "ok": true,
+        "httpStatus": 200,
+        "latencyMs": 541,
+        "error": null,
+        "attempts": 1
+      },
+      "consecutiveFailures": 0,
+      "failingSince": null,
+      "openIncident": null,
+      "days": [
+        {
+          "date": "2026-11-12",
+          "checks": 48,
+          "ok": 48
+        },
+        {
+          "date": "2026-11-13",
+          "checks": 121,
+          "ok": 121
+        },
+        {
+          "date": "2026-11-14",
+          "checks": 127,
+          "ok": 127
+        },
+        {
+          "date": "2026-11-15",
+          "checks": 124,
+          "ok": 124
+        },
+        {
+          "date": "2026-11-16",
+          "checks": 95,
+          "ok": 95
+        },
+        {
+          "date": "2026-11-17",
+          "checks": 118,
+          "ok": 118
+        },
+        {
+          "date": "2026-11-18",
+          "checks": 120,
+          "ok": 120
+        },
+        {
+          "date": "2026-11-19",
+          "checks": 119,
+          "ok": 119
+        },
+        {
+          "date": "2026-11-20",
+          "checks": 121,
+          "ok": 121
+        },
+        {
+          "date": "2026-11-21",
+          "checks": 125,
+          "ok": 125
+        },
+        {
+          "date": "2026-11-22",
+          "checks": 123,
+          "ok": 123
+        },
+        {
+          "date": "2026-11-23",
+          "checks": 114,
+          "ok": 114
+        },
+        {
+          "date": "2026-11-24",
+          "checks": 117,
+          "ok": 117
+        },
+        {
+          "date": "2026-11-25",
+          "checks": 118,
+          "ok": 118
+        },
+        {
+          "date": "2026-11-26",
+          "checks": 118,
+          "ok": 118
+        },
+        {
+          "date": "2026-11-27",
+          "checks": 118,
+          "ok": 118
+        },
+        {
+          "date": "2026-11-28",
+          "checks": 84,
+          "ok": 84
+        }
+      ]
+    }
+  ],
+  "incidents": []
+}
